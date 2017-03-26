@@ -1,0 +1,4 @@
+{"name":"development","hostname":"DESKTOP-3HAOHJJ","pid":6304,"level":30,"msg":"Connected to database: mongodb://localhost:27017/dev","time":"2017-03-24T15:14:06.479Z","v":0}
+{"name":"development","hostname":"DESKTOP-3HAOHJJ","pid":6304,"level":30,"msg":"ClassPortal API is running at http://[::]:5000","time":"2017-03-24T15:14:06.490Z","v":0}
+{"name":"development","hostname":"DESKTOP-3HAOHJJ","pid":436,"level":30,"msg":"Connected to database: mongodb://localhost:27017/dev","time":"2017-03-24T15:15:39.764Z","v":0}
+{"name":"development","hostname":"DESKTOP-3HAOHJJ","pid":436,"level":30,"msg":"ClassPortal API is running at http://[::]:5000","time":"2017-03-24T15:15:39.774Z","v":0}

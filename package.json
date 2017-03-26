@@ -1,0 +1,69 @@
+{
+  "name": "ngallery-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "info": "npm-scripts-info",
+    "lint": "tslint --project .",
+    "build": "node_modules/.bin/tsc -w",
+    "test": "npm run build && NODE_ENV='test' node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha test/**/*.spec.js",
+    "cover": "npm run test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "start:dev": "cross-env NODE_ENV=development DEBUG=true nodemon server.js",
+    "start": "cross-env NODE_ENV=production node server.js"
+  },
+  "scripts-info": {
+    "info": "Display information about the scripts",
+    "lint": "Use Tslint to check the code",
+    "build": "Compile the Typescript code to javascript, -w watch the file change",
+    "test": "Test code functions",
+    "cover": "Calculate the coverage",
+    "start:dev": "Start the server for development environment, it will watch file changes and reload node",
+    "start": "Start the server for production environment"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thundernet8/NGallery-API.git"
+  },
+  "keywords": [
+    "node",
+    "restify",
+    "mongoose"
+  ],
+  "author": "WuXueqian",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/thundernet8/NGallery-API/issues"
+  },
+  "homepage": "https://github.com/thundernet8/NGallery-API#readme",
+  "dependencies": {
+    "@types/bluebird": "^3.5.2",
+    "bunyan": "^1.8.9",
+    "compression": "^1.6.2",
+    "cross-env": "^3.2.4",
+    "email-validator": "^1.0.7",
+    "helmet": "^3.5.0",
+    "jwt-simple": "^0.5.1",
+    "md5": "^2.2.1",
+    "mongoose": "^4.9.1",
+    "restify": "^4.3.0",
+    "stream": "0.0.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^3.4.35",
+    "@types/mocha": "^2.2.40",
+    "@types/mongoose": "^4.7.9",
+    "@types/restify": "^2.0.42",
+    "@types/webpack": "^2.2.12",
+    "bluebird": "^3.5.0",
+    "chai": "^3.5.0",
+    "coveralls": "^2.12.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "nodemon": "^1.11.0",
+    "npm-scripts-info": "^0.3.6",
+    "tslint": "^4.5.1",
+    "tslint-eslint-rules": "^3.5.1",
+    "typescript": "^2.2.1"
+  }
+}

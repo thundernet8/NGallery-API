@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "removeComments": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "typeRoots":[
+      "node_modules/@types",
+      "typings/globals",
+      "typings/modules"
+    ],
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["typings/*"]
+    },
+    "pretty": true
+  },
+  "include": [
+    "typings/module.d.ts",
+    "app/**/*.ts",
+    "config/**/*.ts",
+    "test/**/*.ts",
+    "utils/**/*.ts",
+    "server.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "typings/globals",
+    "typings/modules",
+    "**/*.spec.ts"
+  ]
+}
