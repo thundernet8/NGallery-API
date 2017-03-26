@@ -9,7 +9,7 @@
     "build": "node_modules/.bin/tsc -w",
     "test": "npm run build && NODE_ENV='test' node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha test/**/*.spec.js",
     "cover": "npm run test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "start:dev": "cross-env NODE_ENV=development nodemon server.js",
+    "start:dev": "cross-env NODE_ENV=development DEBUG=true nodemon server.js",
     "start": "cross-env NODE_ENV=production node server.js"
   },
   "scripts-info": {
@@ -37,8 +37,14 @@
   },
   "homepage": "https://github.com/thundernet8/NGallery-API#readme",
   "dependencies": {
+    "@types/bluebird": "^3.5.2",
     "bunyan": "^1.8.9",
+    "compression": "^1.6.2",
     "cross-env": "^3.2.4",
+    "email-validator": "^1.0.7",
+    "helmet": "^3.5.0",
+    "jwt-simple": "^0.5.1",
+    "md5": "^2.2.1",
     "mongoose": "^4.9.1",
     "restify": "^4.3.0",
     "stream": "0.0.2"

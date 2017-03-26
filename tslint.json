@@ -63,11 +63,11 @@
     ],
     "ter-indent": [
       true,
-      2
+      4
     ],
     "ter-max-len": [
       true,
-      100
+      160
     ],
     "object-curly-spacing": [
       true,
@@ -102,7 +102,8 @@
     ],
     "semicolon": [
       true,
-      "always"
+      "never",
+      "ignore-interfaces"
     ],
     "triple-equals": [
       true,

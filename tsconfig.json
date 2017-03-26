@@ -9,16 +9,33 @@
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "typeRoots":[
+      "node_modules/@types",
+      "typings/globals",
+      "typings/modules"
+    ],
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["typings/*"]
+    },
+    "pretty": true
   },
-  "filesGlob": [
-    "/app",
-    "/config",
-    "/test",
-    "/utils",
+  "include": [
+    "typings/module.d.ts",
+    "app/**/*.ts",
+    "config/**/*.ts",
+    "test/**/*.ts",
+    "utils/**/*.ts",
     "server.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "typings/globals",
+    "typings/modules",
+    "**/*.spec.ts"
   ]
 }
