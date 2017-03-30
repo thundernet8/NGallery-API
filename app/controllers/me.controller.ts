@@ -7,16 +7,19 @@ import * as md5 from 'md5'
 import HttpStatus from '../../utils/httpStatus'
 import UserData from '../dataContract/data.user'
 
-export default class UserController implements IController {
+export default class MeController implements IController {
     /**
-     * Search for a user by username, and append it to req.params if successful.
+     * Search for current user, and append it to req.params if successful.
      * @param req
      * @param res
      * @param next
      * @returns {IUserDocument}
      */
     public load (req: restify.Request, res: restify.Response, next: restify.Next) {
-        User.findByLogin(req.params.username)
+        if (!req.username) {
+            return next(new restify.UnauthorizedError('Unauthorized'))
+        }
+        User.findByLogin(req.username)
         .then((user: IUserDocument) => {
             req.params.user = user
             return next()
@@ -25,7 +28,7 @@ export default class UserController implements IController {
     }
 
     /**
-     * Get a user
+     * Get current user
      * @param req
      * @param res
      * @param next
@@ -39,38 +42,11 @@ export default class UserController implements IController {
         userData.nickname = user.nickname
         userData.createdAt = user.createdAt
         userData.role = user.role
+        userData.email = user.email
+        userData.updatedAt = user.updatedAt
+        userData.active = user.active
         res.json(HttpStatus.OK, userData)
         return next()
-    }
-
-    /**
-     * Create a new user from a username and other more information, and then return it
-     * @param req
-     * @param res
-     * @param next
-     * @property {string} req.params.username - The username of the new user
-     * @property {string} req.params.email - The email of the new user
-     * @property {string} req.params.password - The password
-     * @returns {IUserDocument}
-     */
-    public create (req: restify.Request, res: restify.Response, next: restify.Next) {
-        let user: IUserDocument = new User({
-            username: req.params.username,
-            email: req.params.email,
-            password: md5(req.params.password), //TODO maybe salt it
-            nickname: req.params.username,
-            active: false,
-            createdAt: new Date(),
-            role: UserRole.subscriber
-        })
-
-        return user
-        .save()
-        .then((savedUser: IUserDocument) => {
-            res.json(HttpStatus.CREATED, savedUser)
-            return next()
-        })
-        .catch((err: any) => next(err))
     }
 
     public update (req: restify.Request, res: restify.Response, next: restify.Next) {
