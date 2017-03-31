@@ -6,7 +6,8 @@
   "scripts": {
     "info": "npm-scripts-info",
     "lint": "tslint --project .",
-    "build": "node_modules/.bin/tsc -w",
+    "build": "node_modules/.bin/tsc",
+    "build:w": "node_modules/.bin/tsc -w",
     "test": "npm run build && NODE_ENV='test' node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha test/**/*.spec.js",
     "cover": "npm run test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start:dev": "cross-env NODE_ENV=development DEBUG=true nodemon server.js",
