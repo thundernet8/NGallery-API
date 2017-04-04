@@ -3,7 +3,7 @@ import * as bluebird from 'bluebird'
 import { config } from '../../config/env'
 
 export default function Mongo (): mongoose.Connection {
-    mongoose.Promise = bluebird // use bluebird promises instead of mongoose promise library
+    (<any>mongoose).Promise = bluebird // use bluebird promises instead of mongoose promise library
     // connect to mongodb
     const options: mongoose.ConnectionOptions = {
         server: { socketOptions: { keepAlive: 1 } }
