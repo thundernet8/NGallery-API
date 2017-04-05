@@ -7,7 +7,7 @@ const bearerParser = (req: restify.Request, res: restify.Response, next: restify
         const bearer = bearerHeader.split(' ')
         if (bearer.length  > 1) {
             const ret = decode(bearer[1])
-            if (ret && typeof ret === 'object' && ret.uid && ret.expire && ret.expire > new Date().getTime()) {
+            if (ret && typeof ret === 'object' && ret.uid && ret.expires && ret.expires > new Date().getTime()) {
                 req.username = ret.uid
                 req.authorization = {
                     scheme: 'Bearer JWT',

@@ -20,6 +20,7 @@ export default class TokenController implements IController {
         .then((user: IUserDocument) => {
             // verify password
             if (md5(req.params.password) === user.password) {
+                delete user.password
                 req.params.user = user
                 return next()
             } else {
@@ -39,6 +40,7 @@ export default class TokenController implements IController {
      * @return {object} - Object includes the access_token and expire information
      */
     public create (req: restify.Request, res: restify.Response, next: restify.Next) {
-        return res.json(HttpStatus.CREATED, encode(req.params.user.username))
+        const user = req.params.user
+        return res.json(HttpStatus.CREATED, Object.assign({}, encode(req.params.user.username), {profile: user}))
     }
 }
