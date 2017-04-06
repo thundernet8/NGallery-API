@@ -16,11 +16,10 @@ export default class MeController implements IController {
      * @param next
      * @returns {IUserDocument}
      */
-    @loginRequired
     public load (req: restify.Request, res: restify.Response, next: restify.Next) {
-        // if (!req.username) {
-        //     return next(new restify.UnauthorizedError('Unauthorized'))
-        // }
+        if (!req.username) {
+            return next(new restify.UnauthorizedError('Unauthorized'))
+        }
         User.findByLogin(req.username)
         .then((user: IUserDocument) => {
             req.params.user = user
@@ -36,6 +35,7 @@ export default class MeController implements IController {
      * @param next
      * @returns {UserData}
      */
+    @loginRequired
     public get (req: restify.Request, res: restify.Response, next: restify.Next) {
         const user: IUserDocument = req.params.user
         let userData = new UserData()
