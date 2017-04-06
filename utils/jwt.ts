@@ -4,15 +4,15 @@ import { config } from '../config/env'
 const jwtTokenSecret = config.jwtSecret
 
 export const encode = (uid: string) => {
-    let expire = new Date().getTime() + (1000 * 60 * 60 * 24 * 30)
+    let expires = new Date().getTime() + (1000 * 60 * 60 * 24 * 30)
     let token = jwt.encode({
         uid, // username
-        expire
+        expires
     }, jwtTokenSecret)
 
     return {
-        expire,
-        access_token: token
+        expires,
+        accessToken: token
     }
 }
 

@@ -35,8 +35,8 @@ if (env === 'test') {
 
 // settings for production environment
 if (env === 'production') {
-    config.port = 5005
-    config.db = 'mongodb://localhost:27017/prod'
+    config.port = 8080
+    config.db = 'mongodb://mongo:27017/prod' // docker mongo container
     config.debug = false
 }
 

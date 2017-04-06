@@ -11,3 +11,4 @@ release/
 debug.log
 **/*.js
 **/*.js.map
+.npmrc

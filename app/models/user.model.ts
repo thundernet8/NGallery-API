@@ -68,6 +68,7 @@ const UserSchema = new Schema({
     },
     role: {
         type: UserRole,
+        required: true,
         default: UserRole.subscriber
     }
 })

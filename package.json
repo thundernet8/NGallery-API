@@ -2,16 +2,16 @@
   "name": "ngallery-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "info": "npm-scripts-info",
     "lint": "tslint --project .",
-    "build": "node_modules/.bin/tsc",
-    "build:w": "node_modules/.bin/tsc -w",
+    "build": "npm run clean && tsc",
+    "build:w": "npm run clean && tsc -w",
     "test": "npm run build && NODE_ENV='test' node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha test/**/*.spec.js",
     "cover": "npm run test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start:dev": "cross-env NODE_ENV=development DEBUG=true nodemon server.js",
-    "start": "cross-env NODE_ENV=production node server.js"
+    "start": "npm run build && cross-env NODE_ENV=production nodemon server.js",
+    "clean": "rimraf *.js rimraf *.js.map && rimraf app/**/*.js && rimraf app/**/*.js.map && rimraf config/**/*.js && rimraf config/**/*.js.map && rimraf utils/**/*.js && rimraf utils/**/*.js.map"
   },
   "scripts-info": {
     "info": "Display information about the scripts",
@@ -63,6 +63,7 @@
     "mocha": "^3.2.0",
     "nodemon": "^1.11.0",
     "npm-scripts-info": "^0.3.6",
+    "rimraf": "^2.6.1",
     "tslint": "^4.5.1",
     "tslint-eslint-rules": "^3.5.1",
     "typescript": "^2.2.1"
