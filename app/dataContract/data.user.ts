@@ -10,7 +10,7 @@ export default class UserData {
 
     public createdAt: Date
 
-    public role: UserRole
+    public role: string
 
     public email?: string
 

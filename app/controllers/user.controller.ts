@@ -38,7 +38,7 @@ export default class UserController implements IController {
         userData.username = user.username
         userData.nickname = user.nickname
         userData.createdAt = user.createdAt
-        userData.role = user.role
+        userData.role = UserRole[user.role]
         res.json(HttpStatus.OK, userData)
         return next()
     }
@@ -57,7 +57,7 @@ export default class UserController implements IController {
         let user: IUserDocument = new User({
             username: req.params.username,
             email: req.params.email,
-            password: md5(req.params.password), //TODO maybe salt it
+            password: md5(req.params.password), // TODO maybe salt it
             nickname: req.params.username,
             active: false,
             createdAt: new Date(),

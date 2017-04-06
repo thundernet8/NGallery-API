@@ -6,6 +6,7 @@ import { logger } from '../../utils/logger'
 import * as md5 from 'md5'
 import HttpStatus from '../../utils/httpStatus'
 import UserData from '../dataContract/data.user'
+import loginRequired from '../../utils/decorators/loginRequired'
 
 export default class MeController implements IController {
     /**
@@ -15,10 +16,11 @@ export default class MeController implements IController {
      * @param next
      * @returns {IUserDocument}
      */
+    @loginRequired
     public load (req: restify.Request, res: restify.Response, next: restify.Next) {
-        if (!req.username) {
-            return next(new restify.UnauthorizedError('Unauthorized'))
-        }
+        // if (!req.username) {
+        //     return next(new restify.UnauthorizedError('Unauthorized'))
+        // }
         User.findByLogin(req.username)
         .then((user: IUserDocument) => {
             req.params.user = user
@@ -41,7 +43,7 @@ export default class MeController implements IController {
         userData.username = user.username
         userData.nickname = user.nickname
         userData.createdAt = user.createdAt
-        userData.role = user.role
+        userData.role = UserRole[user.role]
         userData.email = user.email
         userData.updatedAt = user.updatedAt
         userData.active = user.active
