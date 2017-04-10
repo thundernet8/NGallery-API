@@ -23,7 +23,8 @@ interface IUserDocument extends mongoose.Document {
     updatedAt: Date;
     active: boolean;
     password: string;
-    role: UserRole
+    role: UserRole;
+    avatar: string
 }
 
 // Model interface
@@ -70,11 +71,31 @@ const UserSchema = new Schema({
         type: UserRole,
         required: true,
         default: UserRole.subscriber
+    },
+    avatar: {
+        type: String
     }
 })
 
 // Statics
 UserSchema.statics = {
+
+    /**
+     * 通过ID查询单个用户 // 覆盖默认findById方法
+     * @param {string} id - 用户ID
+     * @returns {Promise<any>} 返回包含user的Promise
+     */
+    findById: function (id: string): Promise<IUserDocument> {
+        return this
+        .findOne({ _id: ObjectId(id) })
+        .exec()
+        .then((user: IUserModel) => {
+            if (user) {
+                return user
+            }
+            return Promise.reject(new restify.NotFoundError('user not exist'))
+        })
+    },
 
     /**
      * Get a user by username

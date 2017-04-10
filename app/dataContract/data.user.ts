@@ -17,4 +17,6 @@ export default class UserData {
     public updatedAt?: Date
 
     public active?: boolean
+
+    public avatar: string
 }
