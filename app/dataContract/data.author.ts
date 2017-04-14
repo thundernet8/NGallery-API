@@ -1,6 +1,6 @@
-export default class AuthorData {
+﻿export default class AuthorData {
 
-    public _id: string
+    public id: Number
 
     public name: string
 

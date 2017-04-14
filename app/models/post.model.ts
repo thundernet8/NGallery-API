@@ -1,11 +1,11 @@
-import * as restify from 'restify'
+﻿import * as restify from 'restify'
 import * as mongoose from 'mongoose'
 import * as Promise from 'bluebird'
 import * as EmailValidator from 'email-validator'
-import { IPostImage } from '../dataContract/data.postImage'
-
-const Schema = mongoose.Schema
-const ObjectId = mongoose.Types.ObjectId
+import PostImage, { IPostImage } from '../dataContract/data.postImage'
+import * as autoIncrement from 'mongoose-auto-increment'
+import IBaseDocument from './IBaseDocument'
+import { IUserDocument } from '../models/user.model'
 
 enum PostStatus {
     publish, // 已发布
@@ -20,30 +20,30 @@ enum PostType {
 }
 
 // Document interface
-interface IPostDocument extends mongoose.Document {
+interface IPostDocument extends IBaseDocument {
     title: string;
     content: string;
-    createdAt: Date;
-    updatedAt: Date;
     status: PostStatus;
     type: PostType;
-    author: number;
+    author: mongoose.Schema.Types.ObjectId | IUserDocument;
     images: IPostImage[];
     featuredImage: IPostImage;
     comments: number;
     views: number;
     likes: number;
-    // favorites: number;
 }
-
-
 
 // Model interface
 interface IPostModel extends mongoose.Model<IPostDocument> {
-    findById (id: string): any;
+    // statics
+    findByNewId(id: string): Promise<IPostDocument>;
 }
 
-const PostSchema = new Schema({
+const PostSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        unique: true
+    },
     title: {
         type: String,
         required: true
@@ -70,7 +70,8 @@ const PostSchema = new Schema({
         default: PostType.gallery
     },
     author: {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId, // population 关联 User
+        ref: 'User',
         required: true
     },
     images: {
@@ -78,7 +79,7 @@ const PostSchema = new Schema({
         required: true
     },
     featuredImage: {
-        type: Array,
+        type: PostImage,
         required: true
     },
     comments: {
@@ -95,10 +96,36 @@ const PostSchema = new Schema({
         type: Number,
         required: true,
         default: 0
+    },
+    deleted: {
+        type: Boolean,
+        default: false
+    },
+    deleteBy: {
+        type: Number,
+        default: null
+    },
+    deleteDate: {
+        type: Date,
+        default: null
     }
+}, { id: false }) // 去除mongoose默认的id
+    .pre('save', function (next) {
+        this.updatedAt = new Date()
+        next()
+    })
+
+// 挂载AutoIncrement插件
+PostSchema.plugin(autoIncrement.plugin, {
+    model: 'Post',
+    field: 'id',
+    startAt: 0,
+    incrementBy: 1
 })
 
-// Statics
+PostSchema.set('toJSON', { getters: true, virtuals: true })
+
+// Post静态方法
 PostSchema.statics = {
 
     /**
@@ -106,19 +133,20 @@ PostSchema.statics = {
      * @param {string} id - 文章ID
      * @returns {Promise<any>} 返回包含post的Promise
      */
-    findById: function (id: string): Promise<IPostDocument> {
+    findByNewId: function (id: Number): Promise<IPostDocument> {
         return this
-        .findOne({ _id: ObjectId(id) })
-        .exec()
-        .then((post: IPostModel) => {
-            if (post) {
-                return post
-            }
-            return Promise.reject(new restify.NotFoundError('post not exist'))
-        })
+            .findOne({ id: id })
+            .populate('author', 'username', 'nickname', 'email', 'id', 'createdAt', 'active', 'role', 'avatar') // 将author转化为实体
+            .exec()
+            .then((post: IPostDocument) => {
+                if (post) {
+                    return post
+                }
+                return Promise.reject(new restify.NotFoundError('post not exist'))
+            })
     }
 }
 
-const Post: IPostModel = <IPostModel>mongoose.model('Post', PostSchema)
+const Post: IPostModel = <IPostModel>mongoose.model<IPostDocument>('Post', PostSchema)
 
 export { Post, IPostDocument, IPostModel, IPostImage, PostStatus, PostType }

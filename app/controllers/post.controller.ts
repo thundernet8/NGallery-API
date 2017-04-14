@@ -1,4 +1,4 @@
-import * as restify from 'restify'
+﻿import * as restify from 'restify'
 import * as mongoose from 'mongoose'
 import IController from './controller'
 import { Post, IPostDocument, IPostImage, PostStatus, PostType } from '../models/post.model'
@@ -22,7 +22,7 @@ export default class PostController implements IController {
      * @returns {IPostDocument}
      */
     public load (req: restify.Request, res: restify.Response, next: restify.Next) {
-        Post.findById(req.params.id)
+        Post.findByNewId(req.params.id)
         .then((post: IPostDocument) => {
             req.params.post = post
             return next()
@@ -39,11 +39,11 @@ export default class PostController implements IController {
      */
     public get (req: restify.Request, res: restify.Response, next: restify.Next) {
         const post: IPostDocument = req.params.post
-        const author: IUserDocument = User.findById(post._id)
+        const author: IUserDocument = <IUserDocument>post.author
         let authorData = new AuthorData()
-        authorData._id = author._id
+        authorData.id = author.id
         authorData.name = author.nickname
-        authorData.url = config.clientUrl + '/u/' + author._id
+        authorData.url = config.clientUrl + '/u/' + author.id
         authorData.avatar = author.avatar
 
         let postData = new PostData()
@@ -127,5 +127,42 @@ export default class PostController implements IController {
 
     public remove (req: restify.Request, res: restify.Response, next: restify.Next) {
 
+    }
+}
+
+export class TopPostsController implements IController {
+    /**
+     * 查询热门精选Posts, 并添加至req.params.
+     * @param req
+     * @param res
+     * @param next
+     * @returns {IUserDocument}
+     */
+    public load(req: restify.Request, res: restify.Response, next: restify.Next) {
+        User.findByLogin(req.params.username)
+            .then((user: IUserDocument) => {
+                req.params.user = user
+                return next()
+            })
+            .catch((err: any) => next(err))
+    }
+
+    /**
+     * 获取热门精选Posts, 类型可以为昨日/过去一周/过去一月
+     * @param req
+     * @param res
+     * @param next
+     * @returns {UserData}
+     */
+    public get(req: restify.Request, res: restify.Response, next: restify.Next) {
+        const user: IUserDocument = req.params.user
+        let userData = new UserData()
+        userData._id = user._id
+        userData.username = user.username
+        userData.nickname = user.nickname
+        userData.createdAt = user.createdAt
+        userData.role = UserRole[user.role]
+        res.json(HttpStatus.OK, userData)
+        return next()
     }
 }
