@@ -38,12 +38,14 @@ interface ICollectionModel extends mongoose.Model<ICollectionDocument> {
 const CollectionSchema = new mongoose.Schema({
     id: {
         type: Number,
-        unique: true
+        unique: true,
+        index: true
     },
     name: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     description: {
         type: String,
@@ -52,7 +54,8 @@ const CollectionSchema = new mongoose.Schema({
     slug: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     featuredImage: {
         type: PostImage

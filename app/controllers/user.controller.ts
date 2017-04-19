@@ -6,10 +6,13 @@ import { logger } from '../../utils/logger'
 import * as md5 from 'md5'
 import HttpStatus from '../../utils/httpStatus'
 import UserData from '../dataContract/data.user'
+import Validator from '../../utils/validator'
+import loginRequired from '../../utils/decorators/loginRequired'
+import adminRequired from '../../utils/decorators/adminRequired'
 
 export default class UserController implements IController {
     /**
-     * Search for a user by username, and append it to req.params if successful.
+     * 获取路由指定的用户, 并添加至req.params
      * @param req
      * @param res
      * @param next
@@ -25,7 +28,7 @@ export default class UserController implements IController {
     }
 
     /**
-     * Get a user
+     * 取得用户对象并返回
      * @param req
      * @param res
      * @param next
@@ -34,23 +37,25 @@ export default class UserController implements IController {
     public get (req: restify.Request, res: restify.Response, next: restify.Next) {
         const user: IUserDocument = req.params.user
         let userData = new UserData()
-        userData._id = user._id
+        userData.id = user.id
         userData.username = user.username
         userData.nickname = user.nickname
         userData.createdAt = user.createdAt
         userData.role = UserRole[user.role]
+        userData.avatar = user.getAvatar()
+        userData.largeAvatar = user.getAvatar('large')
         res.json(HttpStatus.OK, userData)
         return next()
     }
 
     /**
-     * Create a new user from a username and other more information, and then return it
+     * 创建新用户(注册)
      * @param req
      * @param res
      * @param next
-     * @property {string} req.params.username - The username of the new user
-     * @property {string} req.params.email - The email of the new user
-     * @property {string} req.params.password - The password
+     * @property {string} req.params.username - 用户名
+     * @property {string} req.params.email - 邮箱
+     * @property {string} req.params.password - 密码
      * @returns {IUserDocument}
      */
     public create (req: restify.Request, res: restify.Response, next: restify.Next) {
@@ -73,11 +78,61 @@ export default class UserController implements IController {
         .catch((err: any) => next(err))
     }
 
+    /**
+     * 更新用户
+     * @param req
+     * @param res
+     * @param next
+     */
+    @loginRequired
     public update (req: restify.Request, res: restify.Response, next: restify.Next) {
-
+        let user: IUserDocument = req.params.user
+        const loggedUser: IUserDocument = req.params.loggedUser
+        if (user.username !== loggedUser.username && loggedUser.role !== UserRole.admin) {
+            return next(new restify.ForbiddenError('你没有权限更新用户资料'))
+        }
+        if (req.params.avatar) {
+            user.avatar = req.params.avatar
+        }
+        if (req.params.nickname) {
+            user.nickname = req.params.nickname
+        }
+        if (req.params.email) {
+            if (!Validator.isValidEmail(req.params.email)) {
+                return next(new restify.InvalidArgumentError('无效的邮箱'))
+            }
+            user.email = req.params.email
+        }
+        // TODO admin update user role, user change password
+        user
+        .save()
+        .then((savedUser: IUserDocument) => {
+            res.json(HttpStatus.OK, savedUser)
+            return next()
+        })
+        .catch((err: any) => next(err))
     }
 
+    /**
+     * 删除用户
+     * @param req
+     * @param res
+     * @param next
+     */
+    @adminRequired
     public remove (req: restify.Request, res: restify.Response, next: restify.Next) {
+        let user: IUserDocument = req.params.user
+        const loggedUser: IUserDocument = req.params.loggedUser
+        user.deleted = true
+        user.deleteBy = loggedUser.id
+        user.deleteDate = new Date()
 
+        user
+        .save()
+        .then((savedUser: IUserDocument) => {
+            res.json(HttpStatus.OK, {success: true, uid: user.id})
+            return next()
+        })
+        .catch((err: any) => next(err))
     }
 }

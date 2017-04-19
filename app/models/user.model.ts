@@ -16,7 +16,7 @@ enum UserRole {
 
 // Document interface
 interface IUserDocument extends IBaseDocument {
-    id: Number;
+    id: number;
     username: string;
     nickname: string;
     email: string;
@@ -26,7 +26,7 @@ interface IUserDocument extends IBaseDocument {
     avatar: string; // Virtual
 
     // methods
-    getAvatar(): string;
+    getAvatar(size?: string): string;
 }
 
 // Model interface
@@ -41,12 +41,14 @@ interface IUserModel extends mongoose.Model<IUserDocument> {
 const UserSchema = new mongoose.Schema({
     id: {
         type: Number,
-        unique: true
+        unique: true,
+        index: true
     },
     username: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     nickname: {
         type: String,
@@ -77,7 +79,8 @@ const UserSchema = new mongoose.Schema({
     role: {
         type: UserRole,
         required: true,
-        default: UserRole.subscriber
+        default: UserRole.subscriber,
+        index: true
     },
     //avatar: {
     //    type: String
@@ -205,11 +208,13 @@ UserSchema.methods = {
      * 获取用户头像
      * @returns {String} 头像链接
      */
-    getAvatar: function (): String {
-        if (!this.avatar) {
-            // TODO 字母头像
+    getAvatar: function (size: string = 'default'): String {
+        let avatar = this.avatar
+        if (!avatar) {
+            const firstLetter = this.username.substr(0, 1)
+            avatar = `assets/images/avatars/${firstLetter.toUpperCase()}/${size === 'large' ? 128 : 64}.png`
         }
-        return config.staticPre + this.avatar
+        return config.assetsPre + avatar
     }
 }
 

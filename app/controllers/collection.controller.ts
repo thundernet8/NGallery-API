@@ -57,7 +57,7 @@ export default class CollectionController implements IController {
      */
     @loginRequired
     public async create(req: restify.Request, res: restify.Response, next: restify.Next) {
-        const user: IUserDocument = req.params.user
+        const user: IUserDocument = req.params.loggedUser
         const allowRoles = [UserRole.admin, UserRole.editor, UserRole.author, UserRole.contributor]
         if (allowRoles.indexOf(user.role) < 0) {
             return next(new restify.ForbiddenError('你没有权限创建收藏夹'))
@@ -101,7 +101,7 @@ export default class CollectionController implements IController {
             createdAt: new Date(),
             secret: !!req.params.secret,
             posts: postId ? [postId] : [],
-            featuredImage: featuredImage 
+            featuredImage: featuredImage
         })
 
         return collection

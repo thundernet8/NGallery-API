@@ -1,20 +1,19 @@
 ﻿import * as restify from 'restify'
 import * as mongoose from 'mongoose'
-import * as Promise from 'bluebird'
 import * as autoIncrement from 'mongoose-auto-increment'
 import IBaseDocument from './IBaseDocument'
+import { Post, IPostDocument, PostType } from '../models/post.model'
 
 // Document interface
 interface ITagDocument extends IBaseDocument {
-    id: Number;
+    id: number;
     name: string;
     description: string;
     slug: string;
-    posts: Number[];
-    postsCount: Number; // Virtual
+    postsCount: number; // Virtual
 
     // methods
-    getPostsCount(): Number;
+    getPostsCount(): number;
 }
 
 // Model interface
@@ -23,17 +22,20 @@ interface ITagModel extends mongoose.Model<ITagDocument> {
     findByNewId(id: string): Promise<ITagDocument>;
     findByName(name: string): Promise<ITagDocument>;
     findBySlug(slug: string): Promise<ITagDocument>;
+    getAllTagPostsCount(): Promise<Array<any>>;
 }
 
 const TagSchema = new mongoose.Schema({
     id: {
         type: Number,
-        unique: true
+        unique: true,
+        index: true
     },
     name: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     description: {
         type: String,
@@ -42,11 +44,8 @@ const TagSchema = new mongoose.Schema({
     slug: {
         type: String,
         required: true,
-        unique: true
-    },
-    posts: {
-        type: Array,
-        default: []
+        unique: true,
+        index: true
     },
     createdAt: {
         type: Date,
@@ -83,9 +82,9 @@ TagSchema.plugin(autoIncrement.plugin, {
 })
 
 // 添加Virtual字段
-TagSchema.virtual('posts').get(function () {
-    return this.getPostsCount()
-})
+// TagSchema.virtual('postsCount').get(function () { // 不支持异步
+//     return this.getPostsCount()
+// })
 
 TagSchema.set('toJSON', { getters: true, virtuals: true })
 
@@ -141,10 +140,19 @@ TagSchema.statics = {
                 }
                 return Promise.reject(new restify.NotFoundError('tag not exist'))
             })
-    }
+    },
 
-    // TODO find multi tags
-    // posts counts 一次性查询避免每个tag单独查询
+    /**
+     * 获取所有标签的posts数量
+     */
+    getAllTagPostsCount: async function (): Promise<Array<any>> {
+        return await Post.aggregate([
+            { $match: { deleted: false, type: PostType.gallery } },
+            { $unwind: '$tags' },
+            { $group: { _id: '$tags', count: { $sum: 1 } } }
+        ])
+        .exec()
+    }
 }
 
 // Tag实例方法
@@ -153,9 +161,13 @@ TagSchema.methods = {
      * 获取包含标签的posts数量
      * @returns {Number}
      */
-    getPostsCount: function (): Number {
-        // TODO
-        return 0
+    getPostsCount: async function (): Promise<Number> {
+        return await Post.count({
+            tags: this.id,
+            deleted: false,
+            type: PostType.gallery
+        })
+        .exec()
     }
 }
 

@@ -6,6 +6,7 @@ import PostImage, { IPostImage } from '../dataContract/data.postImage'
 import * as autoIncrement from 'mongoose-auto-increment'
 import IBaseDocument from './IBaseDocument'
 import { IUserDocument } from '../models/user.model'
+import { Stat } from '../models/statistic.model'
 
 enum PostStatus {
     publish, // 已发布
@@ -21,6 +22,7 @@ enum PostType {
 
 // Document interface
 interface IPostDocument extends IBaseDocument {
+    id: number;
     title: string;
     content: string;
     status: PostStatus;
@@ -31,18 +33,21 @@ interface IPostDocument extends IBaseDocument {
     comments: number;
     views: number;
     likes: number;
+    tags: number[]
 }
 
 // Model interface
 interface IPostModel extends mongoose.Model<IPostDocument> {
     // statics
-    findByNewId(id: string): Promise<IPostDocument>;
+    findByNewId(id: number): Promise<IPostDocument>;
+    findTopPosts(): Promise<IPostDocument[]>;
 }
 
 const PostSchema = new mongoose.Schema({
     id: {
-        type: String,
-        unique: true
+        type: Number,
+        unique: true,
+        index: true
     },
     title: {
         type: String,
@@ -53,11 +58,13 @@ const PostSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        index: true
     },
     updatedAt: {
         type: Date,
-        default: null
+        default: null,
+        index: true
     },
     status: {
         type: PostStatus,
@@ -84,18 +91,19 @@ const PostSchema = new mongoose.Schema({
     },
     comments: {
         type: Number,
-        required: true,
         default: 0
     },
     views: {
         type: Number,
-        required: true,
         default: 0
     },
     likes: {
         type: Number,
-        required: true,
         default: 0
+    },
+    tags: {
+        type: Array,
+        default: []
     },
     deleted: {
         type: Boolean,
@@ -109,11 +117,11 @@ const PostSchema = new mongoose.Schema({
         type: Date,
         default: null
     }
-}, { id: false }) // 去除mongoose默认的id
-    .pre('save', function (next) {
-        this.updatedAt = new Date()
-        next()
-    })
+})
+.pre('save', function (next) {
+    this.updatedAt = new Date()
+    next()
+})
 
 // 挂载AutoIncrement插件
 PostSchema.plugin(autoIncrement.plugin, {
@@ -130,10 +138,10 @@ PostSchema.statics = {
 
     /**
      * 通过ID查询单篇Post
-     * @param {string} id - 文章ID
-     * @returns {Promise<any>} 返回包含post的Promise
+     * @param {number} id - 文章ID
+     * @returns {Promise<IPostDocument>} 返回包含post的Promise
      */
-    findByNewId: function (id: Number): Promise<IPostDocument> {
+    findByNewId: function (id: number): Promise<IPostDocument> {
         return this
             .findOne({ id: id })
             .populate('author', 'username', 'nickname', 'email', 'id', 'createdAt', 'active', 'role', 'avatar') // 将author转化为实体
@@ -144,6 +152,23 @@ PostSchema.statics = {
                 }
                 return Promise.reject(new restify.NotFoundError('post not exist'))
             })
+    },
+
+    /**
+     * 查询热门文章(过去一天/一周/一月各一篇)
+     * @returns {Promise<IPostDocument[]>} 返回三篇posts集合
+     */
+    findTopPosts: function (): Promise<IPostDocument[]> {
+        return Promise.all([Stat.findLastDayTopViewedPost(), Stat.findLastWeekTopViewedPost(), Stat.findLastMonthTopViewedPost()])
+        .then((pids: number[]) => {
+            return this.find({
+                id: { $in: pids }
+            })
+            .exec()
+            .then((posts: IPostDocument[]) => {
+                return posts
+            })
+        })
     }
 }
 

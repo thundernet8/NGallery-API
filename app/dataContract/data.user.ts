@@ -2,7 +2,7 @@ import { UserRole } from '../models/user.model'
 
 export default class UserData {
 
-    public _id: string
+    public id: number
 
     public username: string
 
@@ -18,5 +18,7 @@ export default class UserData {
 
     public active?: boolean
 
-    public avatar: string
+    public avatar: string // 64x64
+
+    public largeAvatar: string // 128x128
 }
