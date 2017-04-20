@@ -1,4 +1,4 @@
-import * as path from 'path'
+﻿import * as path from 'path'
 const packagesJSON = require('../package')
 
 interface ConfigSettings {
@@ -8,8 +8,11 @@ interface ConfigSettings {
     port: number;
     env: string;
     db: string;
-    debug: boolean,
-    jwtSecret: string
+    debug: boolean;
+    jwtSecret: string;
+    clientUrl: string;
+    staticPre: string;
+    assetsPre: string
 }
 
 const env: string = process.env.NODE_ENV || 'development'
@@ -24,7 +27,10 @@ const config: ConfigSettings = {
     root: path.join(__dirname, '/..'),
     port: 5000, // API Server Port
     db: 'mongodb://localhost:27017/dev',
-    jwtSecret: 'jwt_secret_NGallery_API' // change this
+    jwtSecret: 'jwt_secret_NGallery_API', // change this
+    clientUrl: 'http://localhost:4000',
+    staticPre: 'http://localhost:4000/static',
+    assetsPre: 'http://localhost:4000/static'
 }
 
 // settings for test environment
@@ -38,6 +44,9 @@ if (env === 'production') {
     config.port = 8080
     config.db = 'mongodb://mongo:27017/prod' // docker mongo container
     config.debug = false
+    config.clientUrl = 'http://www.fuli.news'
+    config.staticPre = 'http://img.fuli.news',
+    config.assetsPre = 'https://static1.fuli.news'
 }
 
 export { config }

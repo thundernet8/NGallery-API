@@ -1,4 +1,4 @@
-**/node_modules/
+﻿**/node_modules/
 dist/
 static/
 logs/
@@ -8,6 +8,7 @@ dist/
 release/
 .idea/
 .vscode/
+.vs/
 debug.log
 **/*.js
 **/*.js.map

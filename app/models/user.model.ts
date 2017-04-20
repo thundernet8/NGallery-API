@@ -1,10 +1,10 @@
-import * as restify from 'restify'
+﻿import * as restify from 'restify'
 import * as mongoose from 'mongoose'
 import * as Promise from 'bluebird'
 import * as EmailValidator from 'email-validator'
-
-const Schema = mongoose.Schema
-const ObjectId = mongoose.Types.ObjectId
+import * as autoIncrement from 'mongoose-auto-increment'
+import IBaseDocument from './IBaseDocument'
+import { config } from '../../config/env'
 
 enum UserRole {
     admin,
@@ -15,30 +15,40 @@ enum UserRole {
 }
 
 // Document interface
-interface IUserDocument extends mongoose.Document {
+interface IUserDocument extends IBaseDocument {
+    id: number;
     username: string;
     nickname: string;
     email: string;
-    createdAt: Date;
-    updatedAt: Date;
     active: boolean;
     password: string;
-    role: UserRole
+    role: UserRole;
+    avatar: string; // Virtual
+
+    // methods
+    getAvatar(size?: string): string;
 }
 
 // Model interface
 interface IUserModel extends mongoose.Model<IUserDocument> {
-    findById (id: string): any;
-    findByLogin (login: string): any;
-    findByEmail (email: string): any;
-    findByLoginOrEmail (loginOrEmail: string): any;
+    // statics
+    findByNewId(id: string): Promise<IUserDocument>;
+    findByLogin(login: string): Promise<IUserDocument>;
+    findByEmail(email: string): Promise<IUserDocument>;
+    findByLoginOrEmail(loginOrEmail: string): Promise<IUserDocument>;
 }
 
-const UserSchema = new Schema({
+const UserSchema = new mongoose.Schema({
+    id: {
+        type: Number,
+        unique: true,
+        index: true
+    },
     username: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        index: true
     },
     nickname: {
         type: String,
@@ -69,72 +79,145 @@ const UserSchema = new Schema({
     role: {
         type: UserRole,
         required: true,
-        default: UserRole.subscriber
+        default: UserRole.subscriber,
+        index: true
+    },
+    //avatar: {
+    //    type: String
+    //},
+    deleted: {
+        type: Boolean,
+        default: false
+    },
+    deleteBy: {
+        type: Number,
+        default: null
+    },
+    deleteDate: {
+        type: Date,
+        default: null
     }
+}, { id: false }) // 去除mongoose默认的id
+    .pre('save', function (next) {
+        this.updatedAt = new Date()
+        next()
+    })
+
+// 挂载AutoIncrement插件
+UserSchema.plugin(autoIncrement.plugin, {
+    model: 'User',
+    field: 'id',
+    startAt: 0,
+    incrementBy: 1
 })
 
-// Statics
+// 添加Virtual字段
+UserSchema.virtual('avatar').get(function () {
+    return this.getAvatar()
+})
+
+UserSchema.set('toJSON', { getters: true, virtuals: true })
+
+// User静态方法
 UserSchema.statics = {
 
     /**
-     * Get a user by username
-     * @param {string} username - The login name of user
-     * @returns {Promise<any>} Return a Promise of the user
+     * 通过ID查询单个用户
+     * @param {Number} id - 用户ID
+     * @returns {Promise<any>} 返回包含user的Promise
      */
-    findByLogin: function (username: string): Promise<IUserDocument> {
+    findByNewId: function (id: Number): Promise<IUserDocument> {
         return this
-        .findOne({ username: username })
-        .exec()
-        .then((user: IUserModel) => {
-            if (user) {
-                return user
-            }
-            return Promise.reject(new restify.NotFoundError('user not exist'))
-        })
+            .findOne({ id: id })
+            .exec()
+            .then((user: IUserDocument) => {
+                if (user) {
+                    return user
+                }
+                return Promise.reject(new restify.NotFoundError('user not exist'))
+            })
     },
 
     /**
-     * Get a user by email
-     * @param {string} email - The email of user
-     * @returns {Promise<any>} Return a Promise of the user
+     * 通过用户名查找用户
+     * @param {string} username - 用户登录名
+     * @returns {Promise<any>} 返回包含User的Promise
+     */
+    findByLogin: function (username: string): Promise<IUserDocument> {
+        return this
+            .findOne({ username: username })
+            .exec()
+            .then((user: IUserDocument) => {
+                if (user) {
+                    return user
+                }
+                return Promise.reject(new restify.NotFoundError('user not exist'))
+            })
+    },
+
+    /**
+     * 通过邮箱查找用户
+     * @param {string} email - 用户邮箱地址
+     * @returns {Promise<any>} 返回包含User的Promise
      */
     findByEmail: function (email: string): Promise<IUserDocument> {
         return this
-        .findOne({ email: email })
-        .exec()
-        .then((user: IUserModel) => {
-            if (user) {
-                return user
-            }
-            return Promise.reject(new restify.NotFoundError('user not exist'))
-        })
+            .findOne({ email: email })
+            .exec()
+            .then((user: IUserDocument) => {
+                if (user) {
+                    return user
+                }
+                return Promise.reject(new restify.NotFoundError('user not exist'))
+            })
     },
 
+    /**
+     * 通过邮箱或用户名查找用户
+     * @param {string} email - 用户名或邮箱地址
+     * @returns {Promise<any>} 返回包含User的Promise
+     */
     findByLoginOrEmail: function (loginOrEmail: string): Promise<IUserDocument> {
         if (!EmailValidator.validate(loginOrEmail)) {
             return this
-            .findOne({ username: loginOrEmail })
-            .exec()
-            .then((user: IUserModel) => {
-                if (user) {
-                    return user
-                }
-                return Promise.reject(new restify.NotFoundError('user not exist'))
-            })
+                .findOne({ username: loginOrEmail })
+                .exec()
+                .then((user: IUserDocument) => {
+                    if (user) {
+                        return user
+                    }
+                    return Promise.reject(new restify.NotFoundError('user not exist'))
+                })
         } else {
             return this
-            .findOne({ email: loginOrEmail })
-            .exec()
-            .then((user: IUserModel) => {
-                if (user) {
-                    return user
-                }
-                return Promise.reject(new restify.NotFoundError('user not exist'))
-            })
+                .findOne({ email: loginOrEmail })
+                .exec()
+                .then((user: IUserDocument) => {
+                    if (user) {
+                        return user
+                    }
+                    return Promise.reject(new restify.NotFoundError('user not exist'))
+                })
         }
     }
 }
 
-const User: IUserModel = <IUserModel>mongoose.model('User', UserSchema)
+// User实例方法
+UserSchema.methods = {
+    /**
+     * 获取用户头像
+     * @returns {String} 头像链接
+     */
+    getAvatar: function (size: string = 'default'): String {
+        let avatar = this.avatar
+        if (!avatar) {
+            const firstLetter = this.username.substr(0, 1)
+            avatar = `assets/images/avatars/${firstLetter.toUpperCase()}/${size === 'large' ? 128 : 64}.png`
+        }
+        return config.assetsPre + avatar
+    }
+}
+
+const User: IUserModel = <IUserModel>mongoose.model<IUserDocument>('User', UserSchema)
 
 export { User, IUserDocument, IUserModel, UserRole }
